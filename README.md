@@ -21,7 +21,7 @@ mgr inż. Aleksandra Ata
 ## Instalacja
 
 ```bash
-git clone https://github.com/<nazwa-repo>/release_notes_generator
+git clone https://github.com/ProXi-22/nowatorski_projekt_zespolowy
 cd release_notes_generator
 python -m venv .venv
 source .venv/bin/activate      # macOS/Linux
