@@ -12,3 +12,92 @@ Narzędzie do automatycznego generowania release notes z commitów Git z wykorzy
 
 ### Prowadzący:
 mgr inż. Aleksandra Ata
+
+## Wymagania
+
+- Python 3.11+
+- Klucz API OpenAI
+
+## Instalacja
+
+```bash
+git clone https://github.com/<nazwa-repo>/release_notes_generator
+cd release_notes_generator
+python -m venv .venv
+source .venv/bin/activate      # macOS/Linux
+.venv\Scripts\activate         # Windows
+pip install -r requirements.txt
+```
+
+## Konfiguracja
+
+Utwórz plik `.env` w głównym katalogu projektu:
+
+```
+OPENAI_API_KEY=<klucz_API>
+```
+
+## Użycie
+
+```bash
+python main.py --repo <url_lub_ścieżka_lokalna> --od <commit_start> --do <commit_end>
+```
+
+### Parametry
+
+| Parametr | Opis                                        | Przykład |
+|----------|---------------------------------------------|---------|
+| `--repo` | URL repozytorium GitHub lub ścieżka lokalna | `https://github.com/user/repo` lub `.` |
+| `--od`   | Commit/tag początku zakresu                 | `HEAD~5`, `v1.0.0` |
+| `--do`   | Commit/tag końca zakresu                    | `HEAD`, `v1.1.0` |
+
+### Przykłady
+
+Repozytorium zdalne (zostanie sklonowane tymczasowo):
+```bash
+python main.py --repo https://github.com/user/projekt --od HEAD~5 --do HEAD
+```
+
+Repozytorium lokalne (bieżący katalog):
+```bash
+python main.py --repo . --od HEAD~5 --do HEAD
+```
+
+### Wynik
+
+Po uruchomieniu w konsoli pojawi się:
+```
+Klonowanie repozytorium z: https://github.com/user/projekt
+Znaleziono 5 commitów.
+
+Generowanie release notes...
+Zapisano: release_notes_projekt_2026-06-13.md
+```
+
+W katalogu roboczym zostanie zapisany plik `release_notes_<nazwa-repo>_<data>.md` z treścią w formacie Markdown, np.:
+
+```markdown
+## Nowości
+- Dodano obsługę argumentu --do w module CLI
+
+## Poprawki błędów
+- Naprawiono błąd przy klonowaniu repo z ukośnikiem na końcu URL
+
+## Zmiany techniczne
+- Wydzielono stałe konfiguracyjne do config.py
+```
+
+## Testy
+
+```bash
+python -m pytest testy.py -v
+```
+
+Pokrycie testami obejmuje moduł `modul_git.py` (3 testy jednostkowe).
+
+## Technologie
+
+- [GitPython](https://gitpython.readthedocs.io) — obsługa repozytoriów Git
+- [OpenAI Python SDK](https://platform.openai.com/docs/libraries) — komunikacja z GPT-4o-mini
+- [python-dotenv](https://pypi.org/project/python-dotenv/) — wczytywanie zmiennych środowiskowych
+- [pytest](https://docs.pytest.org) — testy jednostkowe
