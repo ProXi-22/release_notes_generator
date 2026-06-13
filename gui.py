@@ -118,7 +118,26 @@ class ModernReleaseNotesGUI:
         if not sukces: messagebox.showerror("Błąd", komunikat)
 
     def zapisz_plik(self):
-        pass
+        tekst = self.txt_podglad.get("1.0", tk.END).strip()
+        if not tekst:
+            messagebox.showwarning("Pusty plik", "Najpierw wygeneruj release notes, aby mieć co zapisać!")
+            return
+
+        dzisiejsza_data = datetime.now().strftime("%Y-%m-%d")
+        domyslna_nazwa = f"release_notes_{dzisiejsza_data}.md"
+
+        sciezka = filedialog.asksaveasfilename(
+            title="Wybierz miejsce zapisu",
+            initialfile=domyslna_nazwa,
+            defaultextension=".md",
+            filetypes=[("Pliki Markdown", "*.md"), ("Wszystkie pliki", "*.*")]
+        )
+
+        if sciezka:
+            with open(sciezka, "w", encoding="utf-8") as plik:
+                plik.write(tekst)
+            self.status_var.set(f"Zapisano do pliku: {os.path.basename(sciezka)}")
+            messagebox.showinfo("Sukces", "Plik został pomyślnie zapisany!")
 
 
 if __name__ == "__main__":
