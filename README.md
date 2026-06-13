@@ -101,7 +101,7 @@ W katalogu roboczym zostanie zapisany plik `release_notes_<nazwa-repo>_<data>.md
 python -m pytest testy.py -v
 ```
 
-Pokrycie testami obejmuje moduł `modul_git.py` (3 testy jednostkowe).
+Testy obejmuje moduł `modul_git.py` (3 testy jednostkowe).
 
 ## Technologie
 
