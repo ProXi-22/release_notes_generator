@@ -1,6 +1,12 @@
 import os
+import threading
+from datetime import datetime
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
+
+from modul_git import przygotuj_liste_zmian
+from modul_llm import generuj_release_notes
+
 
 class ModernReleaseNotesGUI:
     def __init__(self, root):
@@ -14,10 +20,15 @@ class ModernReleaseNotesGUI:
         self.style.configure('.', background='#0f111a', foreground='#b0b5db', font=('Trebuchet MS', 10))
         self.style.configure('TLabel', background='#0f111a', foreground='#b0b5db')
         self.style.configure('TLabelframe', background='#0f111a', foreground='#b0b5db', bordercolor='#3f4063')
-        self.style.configure('TLabelframe.Label', background='#0f111a', foreground='#7ed5ea', font=('Trebuchet MS', 10, 'bold'))
-        self.style.configure('Action.TButton', font=('Trebuchet MS', 11, 'bold'), background='#7ed5ea', foreground='#0f111a')
+        self.style.configure('TLabelframe.Label', background='#0f111a', foreground='#7ed5ea',
+                             font=('Trebuchet MS', 10, 'bold'))
+
+        self.style.configure('Action.TButton', font=('Trebuchet MS', 11, 'bold'), background='#7ed5ea',
+                             foreground='#0f111a')
         self.style.map('Action.TButton', background=[('active', '#b0b5db')])
-        self.style.configure('Save.TButton', font=('Trebuchet MS', 10, 'bold'), background='#c792ea', foreground='#0f111a')
+
+        self.style.configure('Save.TButton', font=('Trebuchet MS', 10, 'bold'), background='#c792ea',
+                             foreground='#0f111a')
         self.style.map('Save.TButton', background=[('active', '#b0b5db')])
 
         self.stworz_interfejs()
@@ -55,18 +66,23 @@ class ModernReleaseNotesGUI:
         ramka_zakresorw.columnconfigure(0, weight=1)
         ramka_zakresorw.columnconfigure(1, weight=1)
 
-        self.btn_generuj = ttk.Button(glowny, text=" GENERUJ RELEASE NOTES", style='Action.TButton', command=self.start_generowania)
+        self.btn_generuj = ttk.Button(glowny, text=" GENERUJ RELEASE NOTES", style='Action.TButton',
+                                      command=self.start_generowania)
         self.btn_generuj.pack(fill=tk.X, ipady=6, pady=(5, 5))
 
         self.status_var = tk.StringVar(value="Gotowy.")
-        ttk.Label(glowny, textvariable=self.status_var, font=('Trebuchet MS', 9, 'italic'), foreground='#b0b5db').pack(anchor=tk.W, pady=(0, 15))
+        ttk.Label(glowny, textvariable=self.status_var, font=('Trebuchet MS', 9, 'italic'), foreground='#b0b5db').pack(
+            anchor=tk.W, pady=(0, 15))
 
-        ttk.Label(glowny, text="PODGLĄD WYNIKU (MARKDOWN):", font=('Trebuchet MS', 9, 'bold'), foreground='#7ed5ea').pack(anchor=tk.W, pady=(0, 5))
+        ttk.Label(glowny, text="PODGLĄD WYNIKU (MARKDOWN):", font=('Trebuchet MS', 9, 'bold'),
+                  foreground='#7ed5ea').pack(anchor=tk.W, pady=(0, 5))
 
-        self.txt_podglad = tk.Text(glowny, wrap=tk.WORD, font=('Consolas', 10), bg="#1e1e2f", fg="#7ed5ea", insertbackground="#7ed5ea", bd=1, relief=tk.SOLID, padx=10, pady=10)
+        self.txt_podglad = tk.Text(glowny, wrap=tk.WORD, font=('Consolas', 10), bg="#1e1e2f", fg="#7ed5ea",
+                                   insertbackground="#7ed5ea", bd=1, relief=tk.SOLID, padx=10, pady=10)
         self.txt_podglad.pack(fill=tk.BOTH, expand=True, pady=(0, 10))
 
-        self.btn_zapisz = ttk.Button(glowny, text=" Zapisz jako plik Markdown (.md)", style='Save.TButton', command=self.zapisz_plik)
+        self.btn_zapisz = ttk.Button(glowny, text=" Zapisz jako plik Markdown (.md)", style='Save.TButton',
+                                     command=self.zapisz_plik)
         self.btn_zapisz.pack(fill=tk.X, ipady=5)
 
     def wybierz_folder(self):
@@ -74,7 +90,32 @@ class ModernReleaseNotesGUI:
         if katalog: self.repo_var.set(katalog)
 
     def start_generowania(self):
-        pass
+        self.btn_generuj.config(state=tk.DISABLED)
+        self.status_var.set("Trwa generowanie... Pobieranie danych z Git i LLM.")
+        self.txt_podglad.delete("1.0", tk.END)
+        threading.Thread(target=self.proces_generowania, daemon=True).start()
+
+    def proces_generowania(self):
+        try:
+            lista_zmian = przygotuj_liste_zmian(self.repo_var.get().strip(), self.od_var.get().strip(),
+                                                self.do_var.get().strip())
+            if not lista_zmian:
+                self.koniec_pracy("Nie znaleziono commitów.", sukces=False)
+                return
+
+            wynik = generuj_release_notes(lista_zmian)
+            self.root.after(0, lambda: self.txt_podglad.insert(tk.END, wynik))
+            self.koniec_pracy(f"Generowanie zakończone sukcesem! (Commity: {len(lista_zmian)})", sukces=True)
+        except Exception as e:
+            self.koniec_pracy(f"Błąd: {str(e)}", sukces=False)
+
+    def koniec_pracy(self, komunikat, sukces):
+        self.root.after(0, lambda: self._odswiez_ui(komunikat, sukces))
+
+    def _odswiez_ui(self, komunikat, sukces):
+        self.btn_generuj.config(state=tk.NORMAL)
+        self.status_var.set(komunikat)
+        if not sukces: messagebox.showerror("Błąd", komunikat)
 
     def zapisz_plik(self):
         pass
