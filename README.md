@@ -15,7 +15,7 @@ mgr inż. Aleksandra Ata
 
 ## Wymagania
 
-- Python 3.11+
+- Python 3.8+
 - Klucz API OpenAI
 
 ## Instalacja
@@ -37,10 +37,18 @@ Utwórz plik `.env` w głównym katalogu projektu:
 OPENAI_API_KEY=<klucz_API>
 ```
 
-## Użycie
+## Uruchomienie
+
+### Tryb CLI
 
 ```bash
 python main.py --repo <url_lub_ścieżka_lokalna> --od <commit_start> --do <commit_end>
+```
+
+### Tryb GUI
+
+```bash
+python gui.py
 ```
 
 ### Parametry
@@ -101,3 +109,4 @@ Pokrycie testami obejmuje moduł `modul_git.py` (3 testy jednostkowe).
 - [OpenAI Python SDK](https://platform.openai.com/docs/libraries) — komunikacja z GPT-4o-mini
 - [python-dotenv](https://pypi.org/project/python-dotenv/) — wczytywanie zmiennych środowiskowych
 - [pytest](https://docs.pytest.org) — testy jednostkowe
+- [tkinter](https://docs.python.org/3/library/tkinter.html) — interfejs graficzny
